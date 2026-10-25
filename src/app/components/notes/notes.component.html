@@ -1,0 +1,107 @@
+<div class="notes-page">
+  <div class="page-header">
+    <h1>Notes</h1>
+    <p>All your voice and text notes</p>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <div class="filter-group">
+      <label>Source</label>
+      <select class="select" [(ngModel)]="sourceFilter" (change)="applyFilter()">
+        <option value="">All Sources</option>
+        <option value="voice">Voice</option>
+        <option value="text">Text</option>
+      </select>
+    </div>
+    <div class="filter-count">{{ totalCount }} notes</div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <span>Loading notes...</span>
+  </div>
+
+  <!-- Empty -->
+  <div class="empty-state card" *ngIf="!isLoading && notes.length === 0">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+      <polyline points="14,2 14,8 20,8"/>
+    </svg>
+    <h3>No notes yet</h3>
+    <p>Go to the Dashboard to create your first note</p>
+  </div>
+
+  <!-- Notes Layout -->
+  <div class="notes-layout" *ngIf="!isLoading && notes.length > 0">
+    <!-- Notes List -->
+    <div class="notes-list">
+      <div *ngFor="let note of notes"
+           class="note-card card"
+           [class.selected]="selectedNote?.id === note.id"
+           (click)="selectNote(note)">
+        <div class="note-card-header">
+          <span class="badge" [ngClass]="note.source === 'voice' ? 'badge-in-progress' : 'badge-completed'">
+            <svg *ngIf="note.source === 'voice'" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+            </svg>
+            {{ note.source }}
+          </span>
+          <span class="note-time">{{ timeAgo(note.created_at) }}</span>
+        </div>
+        <p class="note-preview">{{ note.raw_transcript }}</p>
+        <div class="note-footer" *ngIf="note.task_id">
+          <span class="linked-task-badge">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
+              <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+            </svg>
+            Linked to task
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Note Detail -->
+    <div class="note-detail card" *ngIf="selectedNote">
+      <h3>Note Detail</h3>
+      <div class="detail-field">
+        <label>Source</label>
+        <span class="badge" [ngClass]="selectedNote.source === 'voice' ? 'badge-in-progress' : 'badge-completed'">
+          {{ selectedNote.source }}
+        </span>
+      </div>
+      <div class="detail-field">
+        <label>Created</label>
+        <span>{{ formatDate(selectedNote.created_at) }}</span>
+      </div>
+      <div class="detail-field">
+        <label>Transcript</label>
+        <div class="transcript-box">{{ selectedNote.raw_transcript }}</div>
+      </div>
+      <div class="detail-field" *ngIf="selectedNote.task_detail">
+        <label>Linked Task</label>
+        <div class="linked-task-card">
+          <strong>{{ selectedNote.task_detail.title }}</strong>
+          <div class="task-meta">
+            <span class="badge" [ngClass]="'badge-' + selectedNote.task_detail.status.toLowerCase().replace('_', '-')">
+              {{ selectedNote.task_detail.status }}
+            </span>
+            <span class="badge" [ngClass]="'badge-' + selectedNote.task_detail.priority.toLowerCase()">
+              {{ selectedNote.task_detail.priority }}
+            </span>
+            <span *ngIf="selectedNote.task_detail.due_date">Due: {{ selectedNote.task_detail.due_date }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button class="btn btn-secondary btn-sm" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">← Prev</button>
+    <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+    <button class="btn btn-secondary btn-sm" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">Next →</button>
+  </div>
+</div>

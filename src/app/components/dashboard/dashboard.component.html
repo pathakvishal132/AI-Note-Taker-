@@ -1,0 +1,261 @@
+<!-- Toast Notifications -->
+<div class="toast-container">
+  <div *ngFor="let toast of toasts"
+       class="toast toast-{{ toast.type }}"
+       (click)="dismissToast(toast.id)">
+    {{ toast.message }}
+  </div>
+</div>
+
+<div class="dashboard">
+  <div class="page-header">
+    <h1>Dashboard</h1>
+    <p>Voice-powered notes and task management</p>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card stat-total">
+      <div class="stat-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats.total }}</span>
+        <span class="stat-label">Total Tasks</span>
+      </div>
+    </div>
+    <div class="stat-card stat-pending">
+      <div class="stat-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats.pending }}</span>
+        <span class="stat-label">Pending</span>
+      </div>
+    </div>
+    <div class="stat-card stat-progress">
+      <div class="stat-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/>
+          <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/>
+          <line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats.in_progress }}</span>
+        <span class="stat-label">In Progress</span>
+      </div>
+    </div>
+    <div class="stat-card stat-done">
+      <div class="stat-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats.completed }}</span>
+        <span class="stat-label">Completed</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Voice & Text Input -->
+  <div class="input-section card">
+    <h2>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+        <path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/>
+        <line x1="8" y1="23" x2="16" y2="23"/>
+      </svg>
+      Voice & Text Input
+    </h2>
+    <p class="input-hint">Speak or type to create tasks, update status, or save notes</p>
+
+    <!-- Voice Controls -->
+    <div class="voice-controls">
+      <button *ngIf="!recordingState.isRecording"
+              class="mic-btn"
+              (click)="startRecording()"
+              [disabled]="isProcessing"
+              aria-label="Start recording">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+          <path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/>
+          <line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
+      </button>
+
+      <button *ngIf="recordingState.isRecording"
+              class="mic-btn recording"
+              (click)="stopRecording()"
+              aria-label="Stop recording">
+        <div class="pulse-ring"></div>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+          <rect x="6" y="6" width="12" height="12" rx="2"/>
+        </svg>
+      </button>
+
+      <div class="recording-info" *ngIf="recordingState.isRecording">
+        <span class="rec-dot"></span>
+        <span class="rec-time">{{ formatDuration(recordingState.duration) }}</span>
+        <span class="rec-label">Recording...</span>
+      </div>
+
+      <div class="processing-info" *ngIf="isProcessing">
+        <div class="spinner"></div>
+        <span>Processing audio...</span>
+      </div>
+    </div>
+
+    <!-- Microphone error -->
+    <div class="mic-error" *ngIf="recordingState.error">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/>
+        <line x1="9" y1="9" x2="15" y2="15"/>
+      </svg>
+      {{ recordingState.error }}
+    </div>
+
+    <!-- Divider -->
+    <div class="input-divider">
+      <span>or type your message</span>
+    </div>
+
+    <!-- Text Input -->
+    <div class="text-input-group">
+      <textarea
+        class="input"
+        [(ngModel)]="textInput"
+        placeholder='Try: "Remind me to review the PR by Friday, high priority"'
+        rows="2"
+        (keydown.control.enter)="submitTextNote()"
+        [disabled]="isSubmittingText"
+        aria-label="Text input for notes"></textarea>
+      <button class="btn btn-primary submit-btn"
+              (click)="submitTextNote()"
+              [disabled]="!textInput.trim() || isSubmittingText">
+        <div class="spinner" *ngIf="isSubmittingText" style="width:16px;height:16px;border-width:2px;"></div>
+        <svg *ngIf="!isSubmittingText" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+        {{ isSubmittingText ? 'Processing...' : 'Send' }}
+      </button>
+    </div>
+    <div class="text-hint">Press Ctrl+Enter to send</div>
+
+    <!-- Processing Result -->
+    <div class="result-card fade-in" *ngIf="processingResult">
+      <div class="result-header">
+        <span class="result-intent">{{ getIntentLabel(processingResult.intent) }}</span>
+      </div>
+      <div class="result-transcript">
+        <strong>Transcript:</strong> {{ processingResult.note.transcript }}
+      </div>
+      <div class="result-action" *ngIf="processingResult.action">
+        <div *ngIf="processingResult.action.type === 'task_created'" class="action-detail">
+          <span class="badge badge-completed">Task Created</span>
+          <div class="created-task">
+            <strong>{{ processingResult.action.task?.title }}</strong>
+            <div class="task-meta">
+              <span class="badge" [ngClass]="getStatusClass(processingResult.action.task?.status || '')">
+                {{ processingResult.action.task?.status }}
+              </span>
+              <span class="badge" [ngClass]="getPriorityClass(processingResult.action.task?.priority || '')">
+                {{ processingResult.action.task?.priority }}
+              </span>
+              <span *ngIf="processingResult.action.task?.due_date">
+                Due: {{ processingResult.action.task?.due_date }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="processingResult.action.type === 'task_updated'" class="action-detail">
+          <span class="badge badge-in-progress">Task Updated</span>
+          <strong>{{ processingResult.action.task?.title }}</strong>
+          → <span class="badge" [ngClass]="getStatusClass(processingResult.action.task?.status || '')">
+            {{ processingResult.action.task?.status }}
+          </span>
+        </div>
+        <div *ngIf="processingResult.action.type === 'tasks_queried'" class="action-detail">
+          <span class="badge badge-pending">{{ processingResult.action.total_count }} tasks found</span>
+          <div class="queried-tasks" *ngIf="processingResult.action.tasks?.length">
+            <div *ngFor="let task of processingResult.action.tasks" class="mini-task">
+              <span>{{ task.title }}</span>
+              <span class="badge" [ngClass]="getStatusClass(task.status)">{{ task.status }}</span>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="processingResult.action.type === 'note_saved'" class="action-detail">
+          <span class="badge badge-completed">Note Saved</span>
+        </div>
+        <div *ngIf="processingResult.action.type === 'needs_clarification'" class="action-detail">
+          <span class="badge badge-pending">Clarification Needed</span>
+          <p>{{ processingResult.action.message }}</p>
+        </div>
+        <div *ngIf="processingResult.action.type === 'error'" class="action-detail">
+          <span class="badge badge-cancelled">Error</span>
+          <p>{{ processingResult.action.message }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Grid -->
+  <div class="bottom-grid">
+    <!-- Upcoming Tasks -->
+    <div class="card">
+      <div class="card-header">
+        <h3>Upcoming Tasks</h3>
+        <a routerLink="/tasks" class="btn btn-secondary btn-sm">View All</a>
+      </div>
+      <div *ngIf="upcomingTasks.length === 0" class="empty-state">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+        </svg>
+        <h3>No upcoming tasks</h3>
+        <p>Use voice or text to create tasks</p>
+      </div>
+      <div class="task-list">
+        <div *ngFor="let task of upcomingTasks" class="task-item">
+          <div class="task-title">{{ task.title }}</div>
+          <div class="task-meta">
+            <span class="badge" [ngClass]="getStatusClass(task.status)">{{ task.status }}</span>
+            <span class="badge" [ngClass]="getPriorityClass(task.priority)">{{ task.priority }}</span>
+            <span *ngIf="task.due_date" class="task-due">{{ task.due_date }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Notes -->
+    <div class="card">
+      <div class="card-header">
+        <h3>Recent Notes</h3>
+        <a routerLink="/notes" class="btn btn-secondary btn-sm">View All</a>
+      </div>
+      <div *ngIf="recentNotes.length === 0" class="empty-state">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14,2 14,8 20,8"/>
+        </svg>
+        <h3>No notes yet</h3>
+        <p>Record or type your first note</p>
+      </div>
+      <div class="note-list">
+        <div *ngFor="let note of recentNotes" class="note-item">
+          <div class="note-text">{{ note.raw_transcript }}</div>
+          <div class="note-meta">
+            <span class="badge" [ngClass]="note.source === 'voice' ? 'badge-in-progress' : 'badge-completed'">
+              {{ note.source }}
+            </span>
+            <span class="note-time">{{ timeAgo(note.created_at) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
