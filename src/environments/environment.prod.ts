@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: '/api',  // Configure via build-time replacement or reverse proxy
+  apiUrl: 'https://ai-note-taker-backend-f52c.onrender.com/api',
 };
